@@ -15,9 +15,7 @@ class ProcurementOrder(models.Model):
         self.mapped('orderpoint_id.procurement_calendar_id')
         return super(ProcurementOrder, self).run(autocommit)
 
-    def _procurement_from_orderpoint_get_groups(self, orderpoint_ids):
-        orderpoint = self.env['stock.warehouse.orderpoint'].browse(
-            orderpoint_ids[0])
+    def _procurement_from_orderpoint_get_groups(self, orderpoint):
         res_groups = []
         date_groups = orderpoint._get_group()
         for date, group in date_groups:
@@ -146,7 +144,7 @@ class ProcurementOrder(models.Model):
                 suppliers)
 
     @api.model
-    def _procurement_from_orderpoint_get_grouping_key(self, orderpoint_ids):
+    def _procurement_from_orderpoint_get_grouping_key(self, orderpoint):
         """
         We are grouping here procurements by attendance
         :param orderpoint_ids:
@@ -155,8 +153,6 @@ class ProcurementOrder(models.Model):
             <procurement.calendar.attendance>
             )
         """
-        orderpoint = self.env['stock.warehouse.orderpoint'].browse(
-            orderpoint_ids[0])
         return (
             orderpoint.location_id.id,
             orderpoint.procurement_attendance_id.id
