@@ -50,7 +50,7 @@ class TestProductPackaging(common.TransactionCase):
         })
         self.assertAlmostEqual(product_packaging_dozen.qty, 1)
         product_packaging_unit = packaging_obj.with_context(
-            get_uom_categ_from_uom=self.uom_dozen.category_id.id).create({
+            default_product_id=self.product_unit.id).create({
                 'name': 'PACKAGING 2',
                 'product_id': self.product_unit.id,
                 'uom_id': self.uom_dozen.id,
