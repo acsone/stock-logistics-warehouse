@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2017 ACSONE SA/NV (<http://acsone.eu>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 import odoo.tests.common as common
@@ -84,7 +83,7 @@ class TestProductPackaging(common.TransactionCase):
         self.assertAlmostEqual(product_packaging_unit.qty, 6)
         # Set Packaging Quantity
         product_packaging_dozen.qty = 1
-        self.assertEquals(
+        self.assertEqual(
             self.uom_unit,
             product_packaging_dozen.uom_id
         )
