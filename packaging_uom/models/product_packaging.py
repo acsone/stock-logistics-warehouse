@@ -46,6 +46,10 @@ class ProductPackaging(models.Model):
             else:
                 packaging.qty = 0
 
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        self.uom_categ_domain_id = self.product_id.uom_id.category_id.id
+
     @api.multi
     def _inverse_qty(self):
         """
