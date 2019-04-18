@@ -29,6 +29,9 @@ virtualenv:
   system_site_packages: true
 
 install:
+  #  FIXME: remove this after merge
+  - git clone --branch 9.0-backport_packaging_uom_tbi https://github.com/acsone/stock-logistics-warehouse.git PR576
+  - cp -ar PR576/packaging_uom .
   - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - travis_install_nightly
