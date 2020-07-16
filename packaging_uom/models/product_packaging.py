@@ -11,18 +11,18 @@ class ProductPackaging(models.Model):
     def _default_uom_categ_domain_id(self):
         product_id = self.env.context.get("default_product_id")
         if not product_id:
-            return self.env["product.uom.categ"]
+            return self.env["uom.category"]
         uom = self.env["product.product"].browse(product_id).uom_id
         return uom.category_id.id
 
     uom_id = fields.Many2one(
-        "product.uom",
+        "uom.uom",
         "Unit of Measure",
-        help="It must be in the same category than " "the default unit of measure.",
+        help="It must be in the same category than the default unit of measure.",
         required=False,
     )
     uom_categ_domain_id = fields.Many2one(
-        default=_default_uom_categ_domain_id, comodel_name="product.uom.categ"
+        default=_default_uom_categ_domain_id, comodel_name="uom.category"
     )
     qty = fields.Float(
         compute="_compute_qty", inverse="_inverse_qty", store=True, readonly=True,
@@ -54,7 +54,10 @@ class ProductPackaging(models.Model):
         for packaging in self:
             category_id = packaging.product_id.uom_id.category_id
             uom_id = packaging.uom_id.search(
-                [("factor", "=", 1.0 / self.qty), ("category_id", "=", category_id.id)]
+                [
+                    ("factor", "=", 1.0 / (self.qty or 1.0)),
+                    ("category_id", "=", category_id.id),
+                ]
             )
             if not uom_id:
                 uom_id = packaging.uom_id.create(
