@@ -57,7 +57,8 @@ class ProductPackaging(models.Model):
                 [
                     ("factor", "=", 1.0 / (self.qty or 1.0)),
                     ("category_id", "=", category_id.id),
-                ]
+                ],
+                limit=1
             )
             if not uom_id:
                 uom_id = packaging.uom_id.create(
