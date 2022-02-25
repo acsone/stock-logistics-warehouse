@@ -11,7 +11,7 @@
     "category": "Warehouse Management",
     "depends": ["stock_request"],
     "data": [
-        "views/res_config_settings.xml",
+        # "views/res_config_settings.xml",
         "views/stock_request_views.xml",
         "views/stock_request_order_views.xml",
     ],
