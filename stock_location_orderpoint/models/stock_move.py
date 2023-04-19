@@ -22,9 +22,7 @@ class StockMove(models.Model):
     def _prepare_location_orderpoint_replenishment(self, location_field, domain):
         locations_products = {}
         product_obj = self.env["product.product"]
-        for move in self:
-            if not move.filtered_domain(domain):
-                continue
+        for move in self.filtered_domain(domain):
             location = getattr(move, location_field)
             locations_products.setdefault(location, set())
             locations_products[location].add(move.product_id.id)
@@ -67,7 +65,9 @@ class StockMove(models.Model):
         moves = super()._action_confirm(*args, **kwargs)
         moves._prepare_location_orderpoint_replenishment(
             "location_id",
-            self.env["stock.location.orderpoint"]._get_waiting_move_domain(),
+            self.env["stock.location.orderpoint"]
+            ._get_orderpoints("auto")
+            ._get_move_domain(),
         )
         return moves
 
@@ -79,9 +79,8 @@ class StockMove(models.Model):
         moves = super()._action_done(*args, **kwargs)
         moves._prepare_location_orderpoint_replenishment(
             "location_dest_id",
-            [
-                ("move_dest_ids", "=", False),
-                ("procure_method", "=", "make_to_stock"),
-            ],
+            self.env["stock.location.orderpoint"]
+            ._get_orderpoints("auto")
+            ._get_move_domain(waiting=False),
         )
         return moves

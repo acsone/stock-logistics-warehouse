@@ -150,24 +150,42 @@ class StockLocationOrderpoint(models.Model):
             "location_orderpoint_id": self.id,
         }
 
-    def _get_waiting_move_domain(self):
+    def _get_move_domain(self, waiting=True):
         """
         Returns a domain which selects waiting moves
         which should be replenished by given orderpoints
         """
         domain = [
-            ("state", "in", ["confirmed", "partially_available"]),
             ("move_orig_ids", "=", False),
             ("procure_method", "=", "make_to_stock"),
         ]
+        if waiting:
+            domain.append(("state", "in", ["confirmed", "partially_available"]))
         location_domains = []
         for orderpoint in self:
             location_domains.append(
-                [
-                    ("location_id", "child_of", orderpoint.location_id.ids),
-                    "!",
-                    ("location_dest_id", "child_of", orderpoint.location_id.ids),
-                ]
+                expression.OR(
+                    [
+                        [
+                            (
+                                "location_dest_id",
+                                "child_of",
+                                orderpoint.location_src_id.ids,
+                            ),
+                            "!",
+                            ("location_id", "child_of", orderpoint.location_src_id.ids),
+                        ],
+                        [
+                            ("location_id", "child_of", orderpoint.location_id.ids),
+                            "!",
+                            (
+                                "location_dest_id",
+                                "child_of",
+                                orderpoint.location_id.ids,
+                            ),
+                        ],
+                    ]
+                )
             )
         if location_domains:
             domain = expression.AND([domain, expression.OR(location_domains)])
@@ -177,7 +195,7 @@ class StockLocationOrderpoint(models.Model):
         """Return a dictionary of products per location that potentially require a replenishment
         based on the fact there are moves not reserved for those products.
         This reduces the list of products for which the quantity will be computed"""
-        domain = self._get_waiting_move_domain()
+        domain = self._get_move_domain()
         if products:
             domain = expression.AND([domain, [("product_id", "in", products.ids)]])
         moves_grouped = self.env["stock.move"].read_group(
