@@ -9,9 +9,12 @@ class SaleStockReserve(models.TransientModel):
 
     @api.model
     def _default_location_id(self):
-        return self.env["stock.reservation"].get_location_from_ref(
-            "stock.stock_location_stock"
-        )
+        domain = [
+            "|",
+            ("company_id", "=", self.env.company.id),
+            ("company_id", "=", False),
+        ]
+        return self.env["stock.warehouse"].search(domain, limit=1).lot_stock_id
 
     @api.model
     def _default_location_dest_id(self):
@@ -141,7 +144,7 @@ class SaleStockReserve(models.TransientModel):
 
         if active_model == "sale.order":
             sales = env["sale.order"].browse(active_ids)
-            line_ids = [line.id for sale in sales for line in sale.order_line]
+            line_ids = sales.order_line.ids
 
         if active_model == "sale.order.line":
             line_ids = active_ids

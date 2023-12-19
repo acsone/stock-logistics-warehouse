@@ -14,22 +14,28 @@ class StockReservation(models.Model):
     )
 
     def release_reserve(self):
-        for rec in self:
-            rec.sale_line_id = False
+        self.update({"sale_line_id": False})
         return super().release_reserve()
 
     def action_view_reserves_stock_picking_reservation(self):
-        stock_picking = ""
-        action = self.env["ir.actions.actions"]._for_xml_id(
-            "stock.action_picking_tree_all"
-        )
+        stock_picking = False
+        action = {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "info",
+                "sticky": False,
+                "message": "No picking found",
+            },
+        }
         if self.sale_id:
-            stock_picking = (
-                self.env["stock.picking"]
-                .search([("origin", "=", self.sale_id.name)])
-                .filtered(lambda a: a.state not in "cancel")
+            stock_picking = self.env["stock.picking"].search(
+                [("origin", "=", self.sale_id.name), ("state", "!=", "cancel")], limit=1
             )
         if stock_picking:
-            view_id = self.env.ref("stock.view_picking_form").id
+            view_id = self.sudo().env.ref("stock.view_picking_form").id
+            action = self.env["ir.actions.actions"]._for_xml_id(
+                "stock.action_picking_tree_all"
+            )
             action.update(views=[(view_id, "form")], res_id=stock_picking.id)
-            return action
+        return action

@@ -1,9 +1,8 @@
 # Copyright 2013 Camptocamp SA - Guewen Baconnier
 # Copyright 2023 - Hugo Córdoba - FactorLibre - (hugo.cordoba@factorlibre.com)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
-from odoo import api, fields, models
-from odoo.exceptions import UserError, except_orm
-from odoo.tools.translate import _
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class SaleOrderLine(models.Model):
@@ -16,28 +15,22 @@ class SaleOrderLine(models.Model):
         """
         StockRule = self.env["stock.rule"]
         product = self.product_id
-        product_route_ids = [
-            x.id for x in product.route_ids + product.categ_id.total_route_ids
-        ]
-        rules = StockRule.search(
-            [("route_id", "in", product_route_ids)],
+        product_routes = product.route_ids | product.categ_id.total_route_ids
+        rule = StockRule.search(
+            [("route_id", "in", product_routes.ids)],
             order="route_sequence, sequence",
             limit=1,
         )
-        if not rules:
+        if not rule:
             warehouse = self.order_id.warehouse_id
-            wh_routes = warehouse.route_ids
-            wh_route_ids = [route.id for route in wh_routes]
             domain = [
                 "|",
                 ("warehouse_id", "=", warehouse.id),
                 ("warehouse_id", "=", False),
-                ("route_id", "in", wh_route_ids),
+                ("route_id", "in", warehouse.route_ids.ids),
             ]
-            rules = StockRule.search(domain, order="route_sequence, sequence")
-        if rules:
-            fields.first(rules)
-        return False
+            rule = StockRule.search(domain, limit=1, order="route_sequence, sequence")
+        return rule
 
     def _get_procure_method(self):
         """Get procure_method depending on product routes"""
@@ -78,9 +71,7 @@ class SaleOrderLine(models.Model):
     is_readonly = fields.Boolean(compute="_compute_is_readonly", store=False)
 
     def release_stock_reservation(self):
-        reserv_ids = [reserv.id for line in self for reserv in line.reservation_ids]
-        reservations = self.env["stock.reservation"].browse(reserv_ids)
-        reservations.release_reserve()
+        self.reservation_ids.release_reserve()
         return True
 
     def write(self, vals):
@@ -93,8 +84,7 @@ class SaleOrderLine(models.Model):
             for line in self:
                 if not line.reservation_ids:
                     continue
-                raise except_orm(
-                    _("Error"),
+                raise UserError(
                     _(
                         "You cannot change the product or unit of measure "
                         "of lines with a stock reservation. "
@@ -108,8 +98,7 @@ class SaleOrderLine(models.Model):
                 if not line.reservation_ids:
                     continue
                 if len(line.reservation_ids) > 1:
-                    raise except_orm(
-                        _("Error"),
+                    raise UserError(
                         _(
                             "Several stock reservations are linked with the "
                             "line. Impossible to adjust their quantity. "
