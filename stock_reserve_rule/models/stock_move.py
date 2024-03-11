@@ -98,6 +98,14 @@ class StockMove(models.Model):
                             strict=strict,
                         )
                         still_need -= taken_in_loc
+                        # We should break between quants if original needs is fulfilled
+                        need_zero = (
+                            float_compare(still_need, 0, precision_rounding=rounding)
+                            != 1
+                        )
+                        if need_zero:
+                            # useless to eval the other rules when still_need <= 0
+                            break
                     except StopIteration:
                         break
 
