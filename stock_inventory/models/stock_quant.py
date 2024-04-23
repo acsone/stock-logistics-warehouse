@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class StockQuant(models.Model):
@@ -16,20 +16,17 @@ class StockQuant(models.Model):
     to_do = fields.Boolean(default=True)
 
     def _compute_virtual_in_progress_inventory_id(self):
-        Inventory = self.env["stock.inventory"]
+        locations = self.mapped("location_id")
+        inventories = self.env["stock.inventory"].search(
+            self._get_virtual_in_progress_inventory_domain(locations),
+            limit=1,
+        )
         for rec in self:
-            rec.virtual_in_progress_inventory_id = Inventory.search(
-                [
-                    ("state", "=", "in_progress"),
-                    "|",
-                    "&",
-                    ("exclude_sublocation", "=", False),
-                    ("location_ids", "parent_of", rec.location_id.ids),
-                    "&",
-                    ("exclude_sublocation", "=", True),
-                    ("location_ids", "in", rec.location_id.ids),
-                ],
-                limit=1,
+            filtered_inventories = inventories.filtered_domain(
+                self._get_virtual_in_progress_inventory_domain(rec.location_id)
+            )
+            rec.virtual_in_progress_inventory_id = (
+                filtered_inventories[0] if filtered_inventories else False
             )
 
     def _apply_inventory(self):
@@ -88,3 +85,16 @@ class StockQuant(models.Model):
 
     def _get_inventory_fields_write(self):
         return super()._get_inventory_fields_write() + ["to_do"]
+
+    @api.model
+    def _get_virtual_in_progress_inventory_domain(self, locations):
+        return [
+            ("state", "=", "in_progress"),
+            "|",
+            "&",
+            ("exclude_sublocation", "=", False),
+            ("location_ids", "parent_of", locations.ids),
+            "&",
+            ("exclude_sublocation", "=", True),
+            ("location_ids", "in", locations.ids),
+        ]
