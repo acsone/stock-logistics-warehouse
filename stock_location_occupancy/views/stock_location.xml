@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2024 ACSONE SA/NV
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record model="ir.ui.view" id="stock_location_form_view">
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']/parent::h2" position="after">
+                <h2>
+                <label for="occupied_state" string="Occupancy" />
+                <field name="occupied_state" widget="state_selection" />
+                </h2>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="stock_location_search_view">
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_search" />
+        <field name="arch" type="xml">
+            <filter name="inactive" position="after">
+                <separator />
+                <filter
+                    string="Void"
+                    name="is_void"
+                    domain="[('occupied','=',False)]"
+                />
+                <filter
+                    string="Occupied"
+                    name="is_occupied"
+                    domain="[('occupied','=',True)]"
+                />
+            </filter>
+
+        </field>
+    </record>
+
+    <record id="stock_location_tree_view" model="ir.ui.view">
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_tree2" />
+        <field name="arch" type="xml">
+            <field name="storage_category_id" position="after">
+                <field name="occupied_state" widget="state_selection" optional="hide" />
+            </field>
+        </field>
+    </record>
+
+</odoo>

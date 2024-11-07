@@ -1,0 +1,3 @@
+- Go to Inventory > Configuration > Warehouse Management > Locations
+- In the list of locations, enable the column visibility 'Occupancy'
+- You can filter the locations per 'Void' or 'Occupied' property.
