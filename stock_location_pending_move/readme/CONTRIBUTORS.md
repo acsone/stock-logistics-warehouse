@@ -1,0 +1,3 @@
+- Denis Roussel <denis.roussel@acsone.eu>
+- Guewen Baconnier
+- Akim Juillerat <akim.juillerat@camptocamp.com>
