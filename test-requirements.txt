@@ -1,0 +1,1 @@
+odoo-addon-stock-location-pending-move @ git+https://github.com/OCA/stock-logistics-warehouse@refs/pull/2200/head#subdirectory=setup/stock_location_pending_move
