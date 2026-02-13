@@ -1,7 +1,6 @@
 # Copyright 2024 ACSONE SA/NV
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 from odoo import api, fields, models
-from odoo.fields import first
 
 from .exception import ReleaseChannelLocationRestrictionError
 
@@ -32,13 +31,11 @@ class StockMoveLine(models.Model):
                 line.location_dest_id.pending_in_move_line_ids.picking_id.release_channel_id
             )
 
-    @api.depends(
-        "location_dest_id.pending_out_move_line_ids.picking_id.release_channel_id"
-    )
+    @api.depends("location_dest_id.current_release_channel_restriction_id")
     def _compute_for_restriction_destination_location_channel_id(self):
         for line in self:
-            line.for_restriction_destination_location_channel_id = first(
-                line.location_dest_id.pending_out_move_line_ids.picking_id.release_channel_id
+            line.for_restriction_destination_location_channel_id = (
+                line.location_dest_id.current_release_channel_restriction_id
             )
 
     @property
