@@ -105,8 +105,10 @@ class StockMoveLine(models.Model):
 
         Then, set the release channel on destination location.
         """
+
+        res = super()._action_done()
         # Remove it if needed on location source
         self._remove_release_channel_current_restriction()
         # Set the release channel that restricts the locations if needed
         self._set_release_channel_current_restriction()
-        return super()._action_done()
+        return res
