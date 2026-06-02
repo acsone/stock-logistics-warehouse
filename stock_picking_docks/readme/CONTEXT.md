@@ -1,0 +1,2 @@
+When you receive products into multiple locations, you may have multiple docks where the reception picking will be split.
+This module help you keep track of the location of your goods before the are received (and thus before they are assigned an internal location).
